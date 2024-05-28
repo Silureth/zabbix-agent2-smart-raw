@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2024-05-28T12:14:58Z'
+  date: '2024-05-28T14:22:35Z'
   groups:
     - uuid: 57b7ae836ca64446ba2c296389c009b7
       name: Templates/Modules
@@ -253,6 +253,39 @@ zabbix_export:
                 - type: JSONPATH
                   parameters:
                     - $.start_stop_count.value
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'smart.disk.get[{#PATH},"{#RAIDTYPE}"]'
+              tags:
+                - tag: component
+                  value: attribute
+                - tag: component
+                  value: storage
+                - tag: diskname
+                  value: '{#NAME}'
+                - tag: disktype
+                  value: '{#DISKTYPE}'
+            - uuid: ee6bd0ccfc8a47c1bf1df733f73437bf
+              name: 'SMART [{#NAME}]: TBW'
+              type: DEPENDENT
+              key: 'smart.disk.attribute.total_lbas_written[{#NAME}]'
+              delay: '0'
+              history: 7d
+              value_type: FLOAT
+              description: 'This attribute indicates the current disk TBW'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.total_lbas_written.value
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.0000000004656613'
+                - type: REGEX
+                  parameters:
+                    - '^(\d+\.?\d{0,2})(\d*)$'
+                    - \1
                 - type: DISCARD_UNCHANGED_HEARTBEAT
                   parameters:
                     - 6h

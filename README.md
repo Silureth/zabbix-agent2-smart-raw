@@ -11,6 +11,9 @@ for LTS 6.0, included changes for "normalized values"
 MACROS for it
 {$SMART.WEAR_LEVEL.CRIT}
 {$SMART.WEAR_LEVEL.WARN}
+
+added TBW to item prototypes the value is calculated on the assumtion that the sector size is 512
+from "total_lbas_written"
 # USED
 changes made by this pull:
 https://github.com/zabbix/zabbix/pull/95
