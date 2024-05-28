@@ -1,5 +1,11 @@
 # zabbix-agent2-smart-raw
-zabbix-agent2 with raw data
+zabbix-agent2 with raw data , precompiled on DEBIAN 10 
+ - go version go1.22.3 linux/amd64
+ - libc6 (2.28-10+deb10u3)
+# ZIPPED CHANGES to smart plugin in smart.zip
+src/go/plugins/smart
+# PRECOMPILED agent is based on
+zabbix_agent2 (Zabbix) 6.0.31rc1
 # USED
 changes made by this pull:
 https://github.com/zabbix/zabbix/pull/95
