@@ -6,6 +6,11 @@ zabbix-agent2 with raw data , precompiled on DEBIAN 10
 src/go/plugins/smart
 # PRECOMPILED agent is based on
 zabbix_agent2 (Zabbix) 6.0.31rc1
+# zbx_export_templates.yaml
+for LTS 6.0, included changes for "normalized values"
+MACROS for it
+{$SMART.WEAR_LEVEL.CRIT}
+{$SMART.WEAR_LEVEL.WARN}
 # USED
 changes made by this pull:
 https://github.com/zabbix/zabbix/pull/95
