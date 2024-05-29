@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2024-05-28T14:22:35Z'
+  date: '2024-05-29T15:09:02Z'
   groups:
     - uuid: 57b7ae836ca64446ba2c296389c009b7
       name: Templates/Modules
@@ -241,6 +241,51 @@ zabbix_export:
                   value: '{#NAME}'
                 - tag: disktype
                   value: '{#DISKTYPE}'
+            - uuid: 504e7587ac434855a34f5e4e12d79792
+              name: 'SMART [{#NAME}]: SSD_Life_Left'
+              type: DEPENDENT
+              key: 'smart.disk.attribute.ssd_life_left[{#NAME}]'
+              delay: '0'
+              history: 7d
+              description: 'This attribute indicates the current disk state (KINGSTON only)'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.ssd_life_left.normalizedValue
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'smart.disk.get[{#PATH},"{#RAIDTYPE}"]'
+              tags:
+                - tag: component
+                  value: attribute
+                - tag: component
+                  value: storage
+                - tag: diskname
+                  value: '{#NAME}'
+                - tag: disktype
+                  value: '{#DISKTYPE}'
+              trigger_prototypes:
+                - uuid: c300b3b32fd041588937a87e61ac9317
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
+                  event_name: 'SMART [{#NAME}]: SSD Life Left is getting critically low ( {$SMART.WEAR_LEVEL.CRIT} % for 5m)'
+                  priority: HIGH
+                  tags:
+                    - tag: scope
+                      value: notice
+                - uuid: cbe6f258189440a8ad05511b44cfcbb1
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  name: 'SMART [{#NAME}]: SSD Life Left is getting too low'
+                  event_name: 'SMART [{#NAME}]: SSD Life Left is getting too low( {$SMART.WEAR_LEVEL.WARN} % for 5m)'
+                  priority: WARNING
+                  dependencies:
+                    - name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
+                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  tags:
+                    - tag: scope
+                      value: notice
             - uuid: e428eb3368e94dbc955f2bebf8feb202
               name: 'SMART [{#NAME}]: Start_Stop_Count'
               type: DEPENDENT
@@ -300,6 +345,26 @@ zabbix_export:
                   value: '{#NAME}'
                 - tag: disktype
                   value: '{#DISKTYPE}'
+              trigger_prototypes:
+                - uuid: 9dd3bc0b508e4102ab1f6c6fb8be2b71
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)<{$SMART.TBW.CRIT}'
+                  name: 'SMART [{#NAME}]: TBW is getting critically high'
+                  event_name: 'SMART [{#NAME}]: TBW is getting critically high ( {$SMART.TBW.CRIT} % for 5m)'
+                  priority: HIGH
+                  tags:
+                    - tag: scope
+                      value: notice
+                - uuid: 5e78a646ba384c599c39b5791d52c45f
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)<{$SMART.TBW.WARN}'
+                  name: 'SMART [{#NAME}]: TBW is getting too high'
+                  event_name: 'SMART [{#NAME}]: TBW is getting too high ( {$SMART.TBW.WARN} % for 5m)'
+                  priority: WARNING
+                  dependencies:
+                    - name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
+                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  tags:
+                    - tag: scope
+                      value: notice
             - uuid: 5be1ba1bb77447f18b05116167afcfd4
               name: 'SMART [{#NAME}]: Wear_Leveling_Count'
               type: DEPENDENT
@@ -338,7 +403,7 @@ zabbix_export:
                   expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
                   name: 'SMART [{#NAME}]: Disk WLC is getting too low'
                   event_name: 'SMART [{#NAME}]: Disk WLC is getting too low ( {$SMART.WEAR_LEVEL.WARN} % for 5m)'
-                  priority: AVERAGE
+                  priority: WARNING
                   dependencies:
                     - name: 'SMART [{#NAME}]: Disk WLC is getting critically low'
                       expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
@@ -583,8 +648,8 @@ zabbix_export:
                 - uuid: aaa5acb3196b481f894998c0ca5ea165
                   expression: 'last(/SMART by Zabbix agent 2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.WARN}'
                   name: 'SMART [{#NAME}]:  Disk is getting too old >4,5 years'
-                  event_name: 'SMART [{#NAME}]: Disk is too old >5 years ( {$SMART.OLDAGE.WARN} hours for 5m)'
-                  priority: AVERAGE
+                  event_name: 'SMART [{#NAME}]: Disk is too old >4,5 years ( {$SMART.OLDAGE.WARN} hours for 5m)'
+                  priority: WARNING
                   dependencies:
                     - name: 'SMART [{#NAME}]: Disk is too old >5 years'
                       expression: 'last(/SMART by Zabbix agent 2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.CRIT}'
@@ -595,7 +660,7 @@ zabbix_export:
                   expression: 'last(/SMART by Zabbix agent 2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.CRIT}'
                   name: 'SMART [{#NAME}]: Disk is too old >5 years'
                   event_name: 'SMART [{#NAME}]: Disk is too old >5 years ( {$SMART.OLDAGE.CRIT} hours for 5m)'
-                  priority: HIGH
+                  priority: AVERAGE
                   tags:
                     - tag: scope
                       value: notice
@@ -966,6 +1031,12 @@ zabbix_export:
         - macro: '{$SMART.OLDAGE.WARN}'
           value: '39420'
           description: 'Old age of disk 4,5 years'
+        - macro: '{$SMART.TBW.CRIT}'
+          value: '300'
+          description: 'Total Bytes Written (Calculated with 512 sector size) error'
+        - macro: '{$SMART.TBW.WARN}'
+          value: '150'
+          description: 'Total Bytes Written (Calculated with 512 sector size) warn'
         - macro: '{$SMART.TEMPERATURE.MAX.CRIT}'
           value: '65'
           description: 'This macro is used for trigger expression. It can be overridden on the host or linked on the template level.'
@@ -974,10 +1045,10 @@ zabbix_export:
           description: 'This macro is used for trigger expression. It can be overridden on the host or linked on the template level.'
         - macro: '{$SMART.WEAR_LEVEL.CRIT}'
           value: '35'
-          description: 'Samsung disk wear level 35'
+          description: 'Samsung disk wear level  error'
         - macro: '{$SMART.WEAR_LEVEL.WARN}'
           value: '50'
-          description: 'Samsung disk wear level 70'
+          description: 'Samsung disk wear level warn'
       dashboards:
         - uuid: 074166cdd4d54f7e89bd7488283ba5be
           name: 'SMART: Overview'
@@ -988,9 +1059,6 @@ zabbix_export:
                   width: '24'
                   height: '20'
                   fields:
-                    - type: INTEGER
-                      name: columns
-                      value: '2'
                     - type: ITEM_PROTOTYPE
                       name: itemid
                       value:
@@ -1008,9 +1076,6 @@ zabbix_export:
                   width: '24'
                   height: '20'
                   fields:
-                    - type: INTEGER
-                      name: columns
-                      value: '2'
                     - type: ITEM_PROTOTYPE
                       name: itemid
                       value:
