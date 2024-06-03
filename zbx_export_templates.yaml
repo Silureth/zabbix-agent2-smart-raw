@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2024-05-29T15:09:02Z'
+  date: '2024-06-03T07:53:35Z'
   groups:
     - uuid: 57b7ae836ca64446ba2c296389c009b7
       name: Templates/Modules
@@ -59,6 +59,62 @@ zabbix_export:
                   value: '{#NAME}'
                 - tag: disktype
                   value: '{#DISKTYPE}'
+            - uuid: 898af50819ef45afa77851ad74d4ab90
+              name: 'SMART [{#NAME}]: Media_Wearout_Indicator'
+              type: DEPENDENT
+              key: 'smart.disk.attribute.media_wearout_indicator[{#NAME}]'
+              delay: '0'
+              history: 7d
+              description: 'This attribute indicates the current disk state (WD only)'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.media_wearout_indicator.normalizedValue
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'smart.disk.get[{#PATH},"{#RAIDTYPE}"]'
+              tags:
+                - tag: component
+                  value: attribute
+                - tag: component
+                  value: storage
+                - tag: diskname
+                  value: '{#NAME}'
+                - tag: disktype
+                  value: '{#DISKTYPE}'
+              trigger_prototypes:
+                - uuid: 1c7662e05c0440eaaf507453c7005fc4
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
+                  event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT} % for 5m)'
+                  priority: HIGH
+                  tags:
+                    - tag: scope
+                      value: notice
+                - uuid: 4d9d3ad7b036402a842a2936a3184605
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
+                  name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
+                  event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low ( <{$SMART.WEAR_LEVEL.AVG} % for 5m)'
+                  priority: AVERAGE
+                  dependencies:
+                    - name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
+                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  tags:
+                    - tag: scope
+                      value: notice
+                - uuid: 544baa505d3b48fa9a4d5703839d4582
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  name: 'SMART [{#NAME}]: Media Werout Indicator needs attention'
+                  event_name: 'SMART [{#NAME}]: Media Werout Indicator needs attention ( <{$SMART.WEAR_LEVEL.WARN} % for 5m)'
+                  priority: WARNING
+                  dependencies:
+                    - name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
+                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
+                  tags:
+                    - tag: scope
+                      value: notice
             - uuid: 2a055383835247bc83745c84fdc5dea9
               name: 'SMART [{#NAME}]: Power_Cycle_Count'
               type: DEPENDENT
@@ -270,19 +326,30 @@ zabbix_export:
                 - uuid: c300b3b32fd041588937a87e61ac9317
                   expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
                   name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
-                  event_name: 'SMART [{#NAME}]: SSD Life Left is getting critically low ( {$SMART.WEAR_LEVEL.CRIT} % for 5m)'
+                  event_name: 'SMART [{#NAME}]: SSD Life Left is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT} % for 5m)'
                   priority: HIGH
                   tags:
                     - tag: scope
                       value: notice
                 - uuid: cbe6f258189440a8ad05511b44cfcbb1
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   name: 'SMART [{#NAME}]: SSD Life Left is getting too low'
-                  event_name: 'SMART [{#NAME}]: SSD Life Left is getting too low( {$SMART.WEAR_LEVEL.WARN} % for 5m)'
-                  priority: WARNING
+                  event_name: 'SMART [{#NAME}]: SSD Life Left is getting too low( <{$SMART.WEAR_LEVEL.AVG}% for 5m)'
+                  priority: AVERAGE
                   dependencies:
                     - name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
                       expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  tags:
+                    - tag: scope
+                      value: notice
+                - uuid: ba562d8b40794ecb9ef14ac2b2f3efec
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  name: 'SMART [{#NAME}]: SSD Life Left needs attention'
+                  event_name: 'SMART [{#NAME}]: SSD Life Left needs attention ( <{$SMART.WEAR_LEVEL.WARN}% for 5m)'
+                  priority: WARNING
+                  dependencies:
+                    - name: 'SMART [{#NAME}]: SSD Life Left is getting too low'
+                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   tags:
                     - tag: scope
                       value: notice
@@ -347,7 +414,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: 9dd3bc0b508e4102ab1f6c6fb8be2b71
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)<{$SMART.TBW.CRIT}'
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.CRIT}'
                   name: 'SMART [{#NAME}]: TBW is getting critically high'
                   event_name: 'SMART [{#NAME}]: TBW is getting critically high ( {$SMART.TBW.CRIT} % for 5m)'
                   priority: HIGH
@@ -355,9 +422,9 @@ zabbix_export:
                     - tag: scope
                       value: notice
                 - uuid: 5e78a646ba384c599c39b5791d52c45f
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)<{$SMART.TBW.WARN}'
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.AVG}'
                   name: 'SMART [{#NAME}]: TBW is getting too high'
-                  event_name: 'SMART [{#NAME}]: TBW is getting too high ( {$SMART.TBW.WARN} % for 5m)'
+                  event_name: 'SMART [{#NAME}]: TBW is getting too high ( {$SMART.TBW.AVG} % for 5m)'
                   priority: WARNING
                   dependencies:
                     - name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
@@ -394,19 +461,30 @@ zabbix_export:
                 - uuid: e77c08aede9f4b79919153ea945d6a57
                   expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
                   name: 'SMART [{#NAME}]: Disk WLC is getting critically low'
-                  event_name: 'SMART [{#NAME}]: Disk WLC is getting critically low ( {$SMART.WEAR_LEVEL.CRIT} % for 5m)'
+                  event_name: 'SMART [{#NAME}]: Disk WLC is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT}% for 5m)'
                   priority: HIGH
                   tags:
                     - tag: scope
                       value: notice
                 - uuid: 3929d174dc9247419ed41ee8ea90f71e
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   name: 'SMART [{#NAME}]: Disk WLC is getting too low'
-                  event_name: 'SMART [{#NAME}]: Disk WLC is getting too low ( {$SMART.WEAR_LEVEL.WARN} % for 5m)'
-                  priority: WARNING
+                  event_name: 'SMART [{#NAME}]: Disk WLC is getting too low ( <{$SMART.WEAR_LEVEL.AVG}% for 5m)'
+                  priority: AVERAGE
                   dependencies:
                     - name: 'SMART [{#NAME}]: Disk WLC is getting critically low'
                       expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  tags:
+                    - tag: scope
+                      value: notice
+                - uuid: 0e79b0b3800c49da9957dd315b6e995e
+                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  name: 'SMART [{#NAME}]: Disk WLC needs attention'
+                  event_name: 'SMART [{#NAME}]: Disk WLC needs attention ( <{$SMART.WEAR_LEVEL.WARN}% for 5m)'
+                  priority: WARNING
+                  dependencies:
+                    - name: 'SMART [{#NAME}]: Disk WLC is getting too low'
+                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   tags:
                     - tag: scope
                       value: notice
@@ -702,6 +780,10 @@ zabbix_export:
                 - type: JSONPATH
                   parameters:
                     - $.model_name
+                - type: STR_REPLACE
+                  parameters:
+                    - Samsung
+                    - SMS
                 - type: DISCARD_UNCHANGED_HEARTBEAT
                   parameters:
                     - 6h
@@ -1011,6 +1093,42 @@ zabbix_export:
                   operator: REGEXP
                   value: Wear_Leveling_Count
                   discover: DISCOVER
+            - name: SSD_Life_Left
+              step: '13'
+              filter:
+                conditions:
+                  - macro: '{#ATTRIBUTES}'
+                    value: SSD_Life_Left
+                    formulaid: A
+              operations:
+                - operationobject: ITEM_PROTOTYPE
+                  operator: REGEXP
+                  value: SSD_Life_Left
+                  discover: DISCOVER
+            - name: TBW
+              step: '14'
+              filter:
+                conditions:
+                  - macro: '{#ATTRIBUTES}'
+                    value: TBW
+                    formulaid: A
+              operations:
+                - operationobject: ITEM_PROTOTYPE
+                  operator: REGEXP
+                  value: TBW
+                  discover: DISCOVER
+            - name: Media_Wearout_Indicator
+              step: '15'
+              filter:
+                conditions:
+                  - macro: '{#ATTRIBUTES}'
+                    value: Media_Wearout_Indicator
+                    formulaid: A
+              operations:
+                - operationobject: ITEM_PROTOTYPE
+                  operator: REGEXP
+                  value: Media_Wearout_Indicator
+                  discover: DISCOVER
       tags:
         - tag: class
           value: storage
@@ -1041,13 +1159,16 @@ zabbix_export:
           value: '65'
           description: 'This macro is used for trigger expression. It can be overridden on the host or linked on the template level.'
         - macro: '{$SMART.TEMPERATURE.MAX.WARN}'
-          value: '50'
+          value: '52'
           description: 'This macro is used for trigger expression. It can be overridden on the host or linked on the template level.'
+        - macro: '{$SMART.WEAR_LEVEL.AVG}'
+          value: '50'
+          description: 'Samsung disk wear level avg'
         - macro: '{$SMART.WEAR_LEVEL.CRIT}'
           value: '35'
-          description: 'Samsung disk wear level  error'
+          description: 'Samsung disk wear level error'
         - macro: '{$SMART.WEAR_LEVEL.WARN}'
-          value: '50'
+          value: '60'
           description: 'Samsung disk wear level warn'
       dashboards:
         - uuid: 074166cdd4d54f7e89bd7488283ba5be
