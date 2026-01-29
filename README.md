@@ -17,9 +17,12 @@ for LTS 6.0, included changes for "normalized values"
 MACROS for it
 {$SMART.WEAR_LEVEL.CRIT}
 {$SMART.WEAR_LEVEL.WARN}
+{$SMART.WEAR_LEVEL.AVG}
 
 added TBW to item prototypes the value is calculated on the assumtion that the sector size is 512
 from "total_lbas_written"
+
+added newser WDC disk media_wearout goes from 1->100 old WD Red are 100->1, added normalization to Trigger Prototype
 
 # USED
 changes made by this pull:
