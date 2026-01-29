@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.0'
-  date: '2024-06-03T07:53:35Z'
+  date: '2026-01-29T11:01:19Z'
   groups:
     - uuid: 57b7ae836ca64446ba2c296389c009b7
       name: Templates/Modules
@@ -84,37 +84,6 @@ zabbix_export:
                   value: '{#NAME}'
                 - tag: disktype
                   value: '{#DISKTYPE}'
-              trigger_prototypes:
-                - uuid: 1c7662e05c0440eaaf507453c7005fc4
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
-                  name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
-                  event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT} % for 5m)'
-                  priority: HIGH
-                  tags:
-                    - tag: scope
-                      value: notice
-                - uuid: 4d9d3ad7b036402a842a2936a3184605
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
-                  name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
-                  event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low ( <{$SMART.WEAR_LEVEL.AVG} % for 5m)'
-                  priority: AVERAGE
-                  dependencies:
-                    - name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
-                  tags:
-                    - tag: scope
-                      value: notice
-                - uuid: 544baa505d3b48fa9a4d5703839d4582
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
-                  name: 'SMART [{#NAME}]: Media Werout Indicator needs attention'
-                  event_name: 'SMART [{#NAME}]: Media Werout Indicator needs attention ( <{$SMART.WEAR_LEVEL.WARN} % for 5m)'
-                  priority: WARNING
-                  dependencies:
-                    - name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
-                  tags:
-                    - tag: scope
-                      value: notice
             - uuid: 2a055383835247bc83745c84fdc5dea9
               name: 'SMART [{#NAME}]: Power_Cycle_Count'
               type: DEPENDENT
@@ -416,7 +385,7 @@ zabbix_export:
                 - uuid: 9dd3bc0b508e4102ab1f6c6fb8be2b71
                   expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.CRIT}'
                   name: 'SMART [{#NAME}]: TBW is getting critically high'
-                  event_name: 'SMART [{#NAME}]: TBW is getting critically high ( {$SMART.TBW.CRIT} % for 5m)'
+                  event_name: 'SMART [{#NAME}]: TBW is getting critically high ( >{$SMART.TBW.CRIT} for 5m)'
                   priority: HIGH
                   tags:
                     - tag: scope
@@ -424,7 +393,7 @@ zabbix_export:
                 - uuid: 5e78a646ba384c599c39b5791d52c45f
                   expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.AVG}'
                   name: 'SMART [{#NAME}]: TBW is getting too high'
-                  event_name: 'SMART [{#NAME}]: TBW is getting too high ( {$SMART.TBW.AVG} % for 5m)'
+                  event_name: 'SMART [{#NAME}]: TBW is getting too high ( >{$SMART.TBW.AVG} for 5m)'
                   priority: WARNING
                   dependencies:
                     - name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
@@ -947,6 +916,92 @@ zabbix_export:
                   tags:
                     - tag: scope
                       value: notice
+          trigger_prototypes:
+            - uuid: 1c7662e05c0440eaaf507453c7005fc4
+              expression: |
+                (
+                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                and
+                (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT})
+                )
+                or
+                (
+                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                and
+                (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT})
+                )
+              name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
+              event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT} % for 5m)'
+              priority: HIGH
+              tags:
+                - tag: scope
+                  value: notice
+            - uuid: 4d9d3ad7b036402a842a2936a3184605
+              expression: |
+                (
+                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                and
+                (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG})
+                )
+                or
+                (
+                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                and
+                (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG})
+                )
+              name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
+              event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low ( <{$SMART.WEAR_LEVEL.AVG} % for 5m)'
+              priority: AVERAGE
+              dependencies:
+                - name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
+                  expression: |
+                    (
+                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                    and
+                    (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT})
+                    )
+                    or
+                    (
+                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                    and
+                    (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT})
+                    )
+              tags:
+                - tag: scope
+                  value: notice
+            - uuid: 544baa505d3b48fa9a4d5703839d4582
+              expression: |
+                (
+                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                and
+                (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN})
+                )
+                or
+                (
+                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                and
+                (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN})
+                )
+              name: 'SMART [{#NAME}]: Media Werout Indicator needs attention'
+              event_name: 'SMART [{#NAME}]: Media Werout Indicator needs attention ( <{$SMART.WEAR_LEVEL.WARN} % for 5m)'
+              priority: WARNING
+              dependencies:
+                - name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
+                  expression: |
+                    (
+                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                    and
+                    (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG})
+                    )
+                    or
+                    (
+                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                    and
+                    (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG})
+                    )
+              tags:
+                - tag: scope
+                  value: notice
           overrides:
             - name: Self-test
               step: '1'
