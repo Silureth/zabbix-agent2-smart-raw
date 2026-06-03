@@ -6,8 +6,8 @@ zabbix_export:
       name: Templates/Modules
   templates:
     - uuid: 7b6c6228b25f4586b42cd1bf37ff8034
-      template: 'SMART by Zabbix agent 2'
-      name: 'SMART by Zabbix agent 2'
+      template: 'SMART by Zabbix agent 2 v2'
+      name: 'SMART by Zabbix agent 2 v2'
       description: |
         The template for monitoring S.M.A.R.T. attributes of physical disk that works without any external scripts. It collects metrics by Zabbix agent 2 version 5.0 and later with Smartmontools version 7.1 and later. Disk discovery LLD rule finds all HDD, SSD, NVMe disks with S.M.A.R.T. enabled. Attribute discovery LLD rule have pre-defined Vendor Specific Attributes for each disk, and will be discovered if attribute is present.
         
@@ -293,7 +293,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: c300b3b32fd041588937a87e61ac9317
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
                   name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
                   event_name: 'SMART [{#NAME}]: SSD Life Left is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT} % for 5m)'
                   priority: HIGH
@@ -301,24 +301,24 @@ zabbix_export:
                     - tag: scope
                       value: notice
                 - uuid: cbe6f258189440a8ad05511b44cfcbb1
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   name: 'SMART [{#NAME}]: SSD Life Left is getting too low'
                   event_name: 'SMART [{#NAME}]: SSD Life Left is getting too low( <{$SMART.WEAR_LEVEL.AVG}% for 5m)'
                   priority: AVERAGE
                   dependencies:
                     - name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                      expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
                   tags:
                     - tag: scope
                       value: notice
                 - uuid: ba562d8b40794ecb9ef14ac2b2f3efec
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
                   name: 'SMART [{#NAME}]: SSD Life Left needs attention'
                   event_name: 'SMART [{#NAME}]: SSD Life Left needs attention ( <{$SMART.WEAR_LEVEL.WARN}% for 5m)'
                   priority: WARNING
                   dependencies:
                     - name: 'SMART [{#NAME}]: SSD Life Left is getting too low'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
+                      expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   tags:
                     - tag: scope
                       value: notice
@@ -383,7 +383,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: 9dd3bc0b508e4102ab1f6c6fb8be2b71
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.CRIT}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.CRIT}'
                   name: 'SMART [{#NAME}]: TBW is getting critically high'
                   event_name: 'SMART [{#NAME}]: TBW is getting critically high ( >{$SMART.TBW.CRIT} for 5m)'
                   priority: HIGH
@@ -391,13 +391,13 @@ zabbix_export:
                     - tag: scope
                       value: notice
                 - uuid: 5e78a646ba384c599c39b5791d52c45f
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.AVG}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.AVG}'
                   name: 'SMART [{#NAME}]: TBW is getting too high'
                   event_name: 'SMART [{#NAME}]: TBW is getting too high ( >{$SMART.TBW.AVG} for 5m)'
                   priority: WARNING
                   dependencies:
-                    - name: 'SMART [{#NAME}]: SSD Life Left is getting critically low'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.ssd_life_left[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                    - name: 'SMART [{#NAME}]: TBW is getting critically high'
+                      expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.total_lbas_written[{#NAME}],#5)>{$SMART.TBW.CRIT}'
                   tags:
                     - tag: scope
                       value: notice
@@ -428,7 +428,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: e77c08aede9f4b79919153ea945d6a57
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
                   name: 'SMART [{#NAME}]: Disk WLC is getting critically low'
                   event_name: 'SMART [{#NAME}]: Disk WLC is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT}% for 5m)'
                   priority: HIGH
@@ -436,24 +436,24 @@ zabbix_export:
                     - tag: scope
                       value: notice
                 - uuid: 3929d174dc9247419ed41ee8ea90f71e
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   name: 'SMART [{#NAME}]: Disk WLC is getting too low'
                   event_name: 'SMART [{#NAME}]: Disk WLC is getting too low ( <{$SMART.WEAR_LEVEL.AVG}% for 5m)'
                   priority: AVERAGE
                   dependencies:
                     - name: 'SMART [{#NAME}]: Disk WLC is getting critically low'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
+                      expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.CRIT}'
                   tags:
                     - tag: scope
                       value: notice
                 - uuid: 0e79b0b3800c49da9957dd315b6e995e
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.WARN}'
                   name: 'SMART [{#NAME}]: Disk WLC needs attention'
                   event_name: 'SMART [{#NAME}]: Disk WLC needs attention ( <{$SMART.WEAR_LEVEL.WARN}% for 5m)'
                   priority: WARNING
                   dependencies:
                     - name: 'SMART [{#NAME}]: Disk WLC is getting too low'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
+                      expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.wear_leveling_count[{#NAME}],#5)<{$SMART.WEAR_LEVEL.AVG}'
                   tags:
                     - tag: scope
                       value: notice
@@ -540,9 +540,9 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: c51b609f267c45c3bcb4a3f5f40b6d35
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),8) = 8 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),8) = 8
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),8) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),8) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),8) = 8 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),8) = 8
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),8) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),8) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Check returned "DISK FAILING"'
                   priority: HIGH
@@ -553,9 +553,9 @@ zabbix_export:
                       value: notice
                 - uuid: 12ed61dfd27c4666883c4240a5726d06
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),1) = 1 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),1) = 1
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),1) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),1) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),1) = 1 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),1) = 1
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),1) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),1) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Command line did not parse'
                   priority: HIGH
@@ -566,9 +566,9 @@ zabbix_export:
                       value: notice
                 - uuid: 9b960cb324774b3fa5e3d39aeb3141e2
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),2) = 2 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),2) = 2
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),2) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),2) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),2) = 2 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),2) = 2
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),2) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),2) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Device open failed'
                   priority: HIGH
@@ -579,9 +579,9 @@ zabbix_export:
                       value: notice
                 - uuid: ccff1b75f69a47cdbb5a04c58d201a0f
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),64) = 64 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),64) = 64
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),64) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),64) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),64) = 64 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),64) = 64
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),64) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),64) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Error log contains records'
                   priority: HIGH
@@ -592,9 +592,9 @@ zabbix_export:
                       value: notice
                 - uuid: 69fb021abcc841b7b35cc93358ef085c
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),128) = 128 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),128) = 128
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),128) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),128) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),128) = 128 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),128) = 128
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),128) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),128) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Self-test log contains records'
                   priority: HIGH
@@ -607,9 +607,9 @@ zabbix_export:
                       value: notice
                 - uuid: 4ad2fbb5b6e349f6852a489b99a2760d
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),32) = 32 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),32) = 32
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),32) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),32) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),32) = 32 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),32) = 32
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),32) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),32) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Some Attributes have been <= threshold'
                   priority: HIGH
@@ -622,9 +622,9 @@ zabbix_export:
                       value: notice
                 - uuid: 592e647842d048e3985e65726cdc838c
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),4) = 4 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),4) = 4
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),4) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),4) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),4) = 4 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),4) = 4
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),4) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),4) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Some command to the disk failed'
                   status: DISABLED
@@ -639,9 +639,9 @@ zabbix_export:
                       value: notice
                 - uuid: ec137781d51249c89d8891a35a596445
                   expression: |
-                    ( count(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),16) = 16 )
-                    or ( bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),16) = 16
-                    and bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}]),16) > bitand(last(/SMART by Zabbix agent 2/smart.disk.es[{#NAME}],#2),16) )
+                    ( count(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),16) = 16 )
+                    or ( bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),16) = 16
+                    and bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}]),16) > bitand(last(/SMART by Zabbix agent 2 v2/smart.disk.es[{#NAME}],#2),16) )
                   recovery_mode: NONE
                   name: 'SMART [{#NAME}]: Some prefail Attributes <= threshold'
                   priority: HIGH
@@ -653,6 +653,7 @@ zabbix_export:
             - uuid: 805e1d6f91e741ac93e87bd7d62860d5
               name: 'SMART [{#NAME}]: Get disk attributes'
               key: 'smart.disk.get[{#PATH},"{#RAIDTYPE}"]'
+              delay: '{$SMART.DISK.GET.INTERVAL}'
               history: '0'
               trends: '0'
               value_type: TEXT
@@ -693,21 +694,23 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: aaa5acb3196b481f894998c0ca5ea165
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.WARN}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.WARN}'
                   name: 'SMART [{#NAME}]:  Disk is getting too old >4,5 years'
                   event_name: 'SMART [{#NAME}]: Disk is too old >4,5 years ( {$SMART.OLDAGE.WARN} hours for 5m)'
                   priority: WARNING
+                  manual_close: 'YES'
                   dependencies:
                     - name: 'SMART [{#NAME}]: Disk is too old >5 years'
-                      expression: 'last(/SMART by Zabbix agent 2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.CRIT}'
+                      expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.CRIT}'
                   tags:
                     - tag: scope
                       value: notice
                 - uuid: 08deb49301d2498aaf4854af32384d86
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.CRIT}'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.hours[{#NAME}],#5)>{$SMART.OLDAGE.CRIT}'
                   name: 'SMART [{#NAME}]: Disk is too old >5 years'
                   event_name: 'SMART [{#NAME}]: Disk is too old >5 years ( {$SMART.OLDAGE.CRIT} hours for 5m)'
                   priority: AVERAGE
+                  manual_close: 'YES'
                   tags:
                     - tag: scope
                       value: notice
@@ -798,7 +801,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: e2bc2b0e195446d7973037be8e41eb6f
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.percentage_used[{#NAME}])>90'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.percentage_used[{#NAME}],#5)>90'
                   name: 'SMART [{#NAME}]: NVMe disk percentage using is over 90% of estimated endurance'
                   priority: AVERAGE
                   tags:
@@ -830,7 +833,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: 7257c02f398f4338ace1eb3a07cb7362
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2/smart.disk.sn[{#NAME}],#2) and length(last(/SMART by Zabbix agent 2/smart.disk.sn[{#NAME}]))>0'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 v2/smart.disk.sn[{#NAME}],#2) and length(last(/SMART by Zabbix agent 2 v2/smart.disk.sn[{#NAME}]))>0'
                   name: 'SMART [{#NAME}]: Disk has been replaced'
                   event_name: 'SMART [{#NAME}]: Disk has been replaced (new serial number received)'
                   priority: INFO
@@ -865,7 +868,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: cd09aebe3ca146119cdf5b977bf6b018
-                  expression: 'avg(/SMART by Zabbix agent 2/smart.disk.temperature[{#NAME}],5m)>{$SMART.TEMPERATURE.MAX.CRIT}'
+                  expression: 'avg(/SMART by Zabbix agent 2 v2/smart.disk.temperature[{#NAME}],5m)>{$SMART.TEMPERATURE.MAX.CRIT}'
                   name: 'SMART [{#NAME}]: Average disk temperature is critical'
                   event_name: 'SMART [{#NAME}]: Average disk temperature is critical (over {$SMART.TEMPERATURE.MAX.CRIT}°C for 5m)'
                   priority: AVERAGE
@@ -873,13 +876,13 @@ zabbix_export:
                     - tag: scope
                       value: notice
                 - uuid: ed158245605a43b1a7f40afd77ee38d0
-                  expression: 'avg(/SMART by Zabbix agent 2/smart.disk.temperature[{#NAME}],5m)>{$SMART.TEMPERATURE.MAX.WARN}'
+                  expression: 'avg(/SMART by Zabbix agent 2 v2/smart.disk.temperature[{#NAME}],5m)>{$SMART.TEMPERATURE.MAX.WARN}'
                   name: 'SMART [{#NAME}]: Average disk temperature is too high'
                   event_name: 'SMART [{#NAME}]: Average disk temperature is too high (over {$SMART.TEMPERATURE.MAX.WARN}°C for 5m)'
                   priority: WARNING
                   dependencies:
                     - name: 'SMART [{#NAME}]: Average disk temperature is critical'
-                      expression: 'avg(/SMART by Zabbix agent 2/smart.disk.temperature[{#NAME}],5m)>{$SMART.TEMPERATURE.MAX.CRIT}'
+                      expression: 'avg(/SMART by Zabbix agent 2 v2/smart.disk.temperature[{#NAME}],5m)>{$SMART.TEMPERATURE.MAX.CRIT}'
                   tags:
                     - tag: scope
                       value: notice
@@ -910,7 +913,7 @@ zabbix_export:
                   value: '{#DISKTYPE}'
               trigger_prototypes:
                 - uuid: 5fa97df4012e45279fb55724f617ef4a
-                  expression: 'last(/SMART by Zabbix agent 2/smart.disk.test[{#NAME}])="false"'
+                  expression: 'last(/SMART by Zabbix agent 2 v2/smart.disk.test[{#NAME}])="false"'
                   name: 'SMART [{#NAME}]: Disk self-test is not passed'
                   priority: HIGH
                   tags:
@@ -920,18 +923,18 @@ zabbix_export:
             - uuid: 1c7662e05c0440eaaf507453c7005fc4
               expression: |
                 (
-                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
                 and
-                (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
+                (100 - last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
                 )
                 or
                 (
-                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
                 and
-                (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
+                (last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
                 )
-              name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
-              event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT} % for 5m)'
+              name: 'SMART [{#NAME}]: Media Wearout Indicator is getting critically low'
+              event_name: 'SMART [{#NAME}]: Media Wearout Indicator is getting critically low ( <{$SMART.WEAR_LEVEL.CRIT} % for 5m)'
               priority: HIGH
               tags:
                 - tag: scope
@@ -939,32 +942,32 @@ zabbix_export:
             - uuid: 4d9d3ad7b036402a842a2936a3184605
               expression: |
                 (
-                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
                 and
-                (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
+                (100 - last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
                 )
                 or
                 (
-                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
                 and
-                (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
+                (last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
                 )
-              name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
-              event_name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low ( <{$SMART.WEAR_LEVEL.AVG} % for 5m)'
+              name: 'SMART [{#NAME}]: Media Wearout Indicator is getting too low'
+              event_name: 'SMART [{#NAME}]: Media Wearout Indicator is getting too low ( <{$SMART.WEAR_LEVEL.AVG} % for 5m)'
               priority: AVERAGE
               dependencies:
-                - name: 'SMART [{#NAME}]: Media Werout Indicator is getting critically low'
+                - name: 'SMART [{#NAME}]: Media Wearout Indicator is getting critically low'
                   expression: |
                     (
-                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                    find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
                     and
-                    (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
+                    (100 - last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
                     )
                     or
                     (
-                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                    find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
                     and
-                    (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
+                    (last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.CRIT})
                     )
               tags:
                 - tag: scope
@@ -972,32 +975,32 @@ zabbix_export:
             - uuid: 544baa505d3b48fa9a4d5703839d4582
               expression: |
                 (
-                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
                 and
-                (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.WARN})
+                (100 - last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.WARN})
                 )
                 or
                 (
-                find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
                 and
-                (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.WARN})
+                (last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.WARN})
                 )
-              name: 'SMART [{#NAME}]: Media Werout Indicator needs attention'
-              event_name: 'SMART [{#NAME}]: Media Werout Indicator needs attention ( <{$SMART.WEAR_LEVEL.WARN} % for 5m)'
+              name: 'SMART [{#NAME}]: Media Wearout Indicator needs attention'
+              event_name: 'SMART [{#NAME}]: Media Wearout Indicator needs attention ( <{$SMART.WEAR_LEVEL.WARN} % for 5m)'
               priority: WARNING
               dependencies:
-                - name: 'SMART [{#NAME}]: Media Werout Indicator is getting too low'
+                - name: 'SMART [{#NAME}]: Media Wearout Indicator is getting too low'
                   expression: |
                     (
-                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
+                    find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=1
                     and
-                    (100 - last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
+                    (100 - last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
                     )
                     or
                     (
-                    find(/SMART by Zabbix agent 2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
+                    find(/SMART by Zabbix agent 2 v2/smart.disk.model[{#NAME}],#1,"regexp","^WDC")=0
                     and
-                    (last(/SMART by Zabbix agent 2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
+                    (last(/SMART by Zabbix agent 2 v2/smart.disk.attribute.media_wearout_indicator[{#NAME}],#1)<{$SMART.WEAR_LEVEL.AVG})
                     )
               tags:
                 - tag: scope
@@ -1192,12 +1195,15 @@ zabbix_export:
         - tag: target
           value: ssd
       macros:
+        - macro: '{$SMART.DISK.GET.INTERVAL}'
+          value: 1h
+          description: 'How often to poll SMART data per disk. 1h is sufficient — disk failures are reported by ILO/iDRAC; SMART is for trend monitoring only.'
         - macro: '{$SMART.DISK.NAME.MATCHES}'
           value: '^.*$'
           description: 'This macro is used in the filter of attribute and disk discoveries. It can be overridden on the host or linked on the template level.'
         - macro: '{$SMART.DISK.NAME.NOT_MATCHES}'
           value: CHANGE_IF_NEEDED
-          description: 'This macro is used in the filter of attribute and disk discoveries. It can be overridden on the host or linked on the template level.'
+          description: 'Excludes disks from discovery by name/path regex. Override per host to deduplicate RAID setups where the same physical disk appears under multiple paths (e.g. both as /dev/sda and via megaraid passthrough). Example: set to "^/dev/sd[a-z]$" to exclude RAID virtual devices and keep only passthrough paths, or vice versa.'
         - macro: '{$SMART.OLDAGE.CRIT}'
           value: '43800'
           description: 'Old age of disk 5 years'
@@ -1238,7 +1244,7 @@ zabbix_export:
                     - type: ITEM_PROTOTYPE
                       name: itemid
                       value:
-                        host: 'SMART by Zabbix agent 2'
+                        host: 'SMART by Zabbix agent 2 v2'
                         key: 'smart.disk.temperature[{#NAME}]'
                     - type: INTEGER
                       name: rows
@@ -1255,7 +1261,7 @@ zabbix_export:
                     - type: ITEM_PROTOTYPE
                       name: itemid
                       value:
-                        host: 'SMART by Zabbix agent 2'
+                        host: 'SMART by Zabbix agent 2 v2'
                         key: 'smart.disk.hours[{#NAME}]'
                     - type: INTEGER
                       name: rows
