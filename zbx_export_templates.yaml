@@ -65,11 +65,13 @@ zabbix_export:
               key: 'smart.disk.attribute.media_wearout_indicator[{#NAME}]'
               delay: '0'
               history: 7d
+              discover: NO_DISCOVER
               description: 'This attribute indicates the current disk state (WD only)'
               preprocessing:
                 - type: JSONPATH
                   parameters:
                     - $.media_wearout_indicator.normalizedValue
+                  error_handler: DISCARD_VALUE
                 - type: DISCARD_UNCHANGED_HEARTBEAT
                   parameters:
                     - 6h
@@ -272,11 +274,13 @@ zabbix_export:
               key: 'smart.disk.attribute.ssd_life_left[{#NAME}]'
               delay: '0'
               history: 7d
+              discover: NO_DISCOVER
               description: 'This attribute indicates the current disk state (KINGSTON only)'
               preprocessing:
                 - type: JSONPATH
                   parameters:
                     - $.ssd_life_left.normalizedValue
+                  error_handler: DISCARD_VALUE
                 - type: DISCARD_UNCHANGED_HEARTBEAT
                   parameters:
                     - 6h
@@ -354,12 +358,14 @@ zabbix_export:
               key: 'smart.disk.attribute.total_lbas_written[{#NAME}]'
               delay: '0'
               history: 7d
+              discover: NO_DISCOVER
               value_type: FLOAT
               description: 'This attribute indicates the current disk TBW'
               preprocessing:
                 - type: JSONPATH
                   parameters:
                     - $.total_lbas_written.value
+                  error_handler: DISCARD_VALUE
                 - type: MULTIPLIER
                   parameters:
                     - '0.0000000004656613'
@@ -367,6 +373,7 @@ zabbix_export:
                   parameters:
                     - '^(\d+\.?\d{0,2})(\d*)$'
                     - \1
+                  error_handler: DISCARD_VALUE
                 - type: DISCARD_UNCHANGED_HEARTBEAT
                   parameters:
                     - 6h
@@ -407,11 +414,13 @@ zabbix_export:
               key: 'smart.disk.attribute.wear_leveling_count[{#NAME}]'
               delay: '0'
               history: 7d
+              discover: NO_DISCOVER
               description: 'This attribute indicates the current disk state (SAMSUNG only)'
               preprocessing:
                 - type: JSONPATH
                   parameters:
                     - $.wear_leveling_count.normalizedValue
+                  error_handler: DISCARD_VALUE
                 - type: DISCARD_UNCHANGED_HEARTBEAT
                   parameters:
                     - 6h
@@ -1029,7 +1038,7 @@ zabbix_export:
               operations:
                 - operationobject: ITEM_PROTOTYPE
                   operator: REGEXP
-                  value: Media|Percentage|Critical
+                  value: Percentage|Critical
                   discover: NO_DISCOVER
             - name: Raw_Read_Error_Rate
               step: '3'
@@ -1168,7 +1177,7 @@ zabbix_export:
               filter:
                 conditions:
                   - macro: '{#ATTRIBUTES}'
-                    value: TBW
+                    value: Total_LBAs_Written
                     formulaid: A
               operations:
                 - operationobject: ITEM_PROTOTYPE
