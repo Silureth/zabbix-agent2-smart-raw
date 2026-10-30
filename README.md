@@ -51,18 +51,24 @@ Kingston and HDD support comes from the official template's attribute list and h
 Use macro context on the host. The context is the disk name shown in the item names, e.g. `sda cciss,3` or `nvme0`:
 - `{$SMART.WEAROUT.INVERT:"<disk>"}` = `1` for disks whose Media_Wearout_Indicator counts up from 0 (new) to 100 (worn out), mostly newer WD models
 - `{$SMART.TBW.UNIT.BYTES:"<disk>"}` = `1073741824` for disks that report Total_LBAs_Written in GiB instead of 512-byte sectors (e.g. WD Red SA500)
-- `{$SMART.TBW.WARN:"<disk>"}` / `{$SMART.TBW.CRIT:"<disk>"}` = written-bytes limits matching the disk's rated endurance, e.g. `500T` / `600T`
+- `{$SMART.TBW.SUSPECT:"<disk>"}` = a higher limit (e.g. `5000T`) for enterprise SSDs rated for many petabytes, so they don't trip the "shows no wear after heavy writes" alert
 
 On HP Smart Array (cciss) hosts set `{$SMART.DISK.NAME.NOT_MATCHES}` to ` scsi$` to skip the controller's logical volume, which has no SMART data.
 
 ### Changes compared to the official template
 - SSD endurance items: Wear_Leveling_Count (Samsung), SSD_Life_Left (Kingston), Media_Wearout_Indicator (WD), Percent_Lifetime_Remain (Micron/Crucial).
   All are stored as "% life remaining" (100 = new) and alert below `{$SMART.WEAR_LEVEL.WARN}` / `AVG` / `CRIT` (default 30 / 20 / 10 %).
-- Total bytes written per disk (from Total_LBAs_Written or Host_Writes_GiB), with per-disk limit triggers.
+- Total bytes written per disk (from Total_LBAs_Written or Host_Writes_GiB). There are no write-limit triggers:
+  SSD wear is alerted by the endurance items above, and fixed limits only made noise on large disks and HDDs.
+  Instead it flags a wear counter that does not move: more than `{$SMART.TBW.SUSPECT}` (default `500T`) written while the
+  endurance item still shows 99-100 % remaining (Average, can be closed manually).
 - Failure attribute items and triggers: Current_Pending_Sector, Offline_Uncorrectable, Uncorrectable_Error_Cnt, Runtime_Bad_Block,
   UDMA_CRC_Error_Count / CRC_Error_Count (interface errors, usually cable or backplane), plus alerts when Reallocated_Sector_Ct
   or Reported_Uncorrect increase. "Increased" alerts stay open until closed manually.
-- Disk age triggers on power-on hours (`{$SMART.OLDAGE.WARN}` / `{$SMART.OLDAGE.CRIT}`, default about 4.5 / 5 years).
+- Disk age triggers on power-on hours (`{$SMART.OLDAGE.WARN}` / `AVG` / `CRIT` = Warning / Average / High), with the disk type as macro context:
+  8 / 10 / 12 years for HDDs, 6 / 7 / 8 years for SSD and NVMe. Age is a secondary indicator: it still alerts when a disk's
+  wear counter is wrong (e.g. an old SSD that reports 0 % wear after a petabyte of writes).
+  Override on a host per type, e.g. `{$SMART.OLDAGE.WARN:"ssd"}` = `61320`.
 - Configurable polling interval (`{$SMART.DISK.GET.INTERVAL}`) and triggers that use the latest value, suited to hourly polling.
 - Vendor attribute items are created only when the disk reports that attribute.
 

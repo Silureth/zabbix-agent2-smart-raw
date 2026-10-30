@@ -28,14 +28,14 @@ zabbix_export:
         Per-disk settings use macro context. The context is the disk name shown in the item names, e.g. "sda cciss,3" or "nvme0":
         - {$SMART.WEAROUT.INVERT:"<disk>"} = 1 for disks whose Media_Wearout_Indicator counts up from 0 (new) to 100 (worn out), mostly newer WD models.
         - {$SMART.TBW.UNIT.BYTES:"<disk>"} = 1073741824 for disks that report Total_LBAs_Written in GiB instead of 512-byte sectors (e.g. WD Red SA500).
-        - {$SMART.TBW.WARN:"<disk>"} / {$SMART.TBW.CRIT:"<disk>"} = written-bytes limits matching the disk's rated endurance, e.g. 500T / 600T.
+        - {$SMART.TBW.SUSPECT:"<disk>"} = a higher limit (e.g. 5000T) for enterprise SSDs rated for many petabytes, so they don't trip the "shows no wear after heavy writes" alert.
         On HP Smart Array (cciss) hosts set {$SMART.DISK.NAME.NOT_MATCHES} to " scsi$" to skip the controller's logical volume, which has no SMART data.
 
         Changes compared to the official template:
         - SSD endurance items: Wear_Leveling_Count (Samsung), SSD_Life_Left (Kingston), Media_Wearout_Indicator (WD), Percent_Lifetime_Remain (Micron/Crucial). All are stored as "% life remaining" (100 = new) and alert below {$SMART.WEAR_LEVEL.WARN}, {$SMART.WEAR_LEVEL.AVG} and {$SMART.WEAR_LEVEL.CRIT} (default 30/20/10%).
-        - Total bytes written per disk (from Total_LBAs_Written or Host_Writes_GiB), with per-disk limit triggers.
+        - Total bytes written per disk (from Total_LBAs_Written or Host_Writes_GiB). No write-limit triggers, since SSD wear is alerted by the wear-level items; instead it flags a wear counter that does not move: more than {$SMART.TBW.SUSPECT} (default 500T) written while the wear item still shows 99-100% remaining.
         - Failure attribute items and triggers: Current_Pending_Sector, Offline_Uncorrectable, Uncorrectable_Error_Cnt, Runtime_Bad_Block, UDMA_CRC_Error_Count / CRC_Error_Count (interface errors, usually cable or backplane), plus alerts when Reallocated_Sector_Ct or Reported_Uncorrect increase. "Increased" alerts stay open until closed manually.
-        - Disk age triggers on power-on hours ({$SMART.OLDAGE.WARN} / {$SMART.OLDAGE.CRIT}, default about 4.5 / 5 years).
+        - Disk age triggers on power-on hours ({$SMART.OLDAGE.WARN} / {$SMART.OLDAGE.AVG} / {$SMART.OLDAGE.CRIT}), with the disk type as macro context: 8 / 10 / 12 years for HDDs, 6 / 7 / 8 years for SSD and NVMe. Age is a secondary indicator that still alerts when a disk's wear counter is wrong. Override on a host per type, e.g. {$SMART.OLDAGE.WARN:"ssd"}.
         - Configurable polling interval ({$SMART.DISK.GET.INTERVAL}) and triggers that use the latest value, suited to hourly polling.
         - Vendor attribute items are created only when the disk reports that attribute.
 
@@ -674,6 +674,9 @@ zabbix_export:
                 (512 by default), or from Host_Writes_GiB when the disk only reports that.
                 Some disks (e.g. WD Red SA500) report Total_LBAs_Written in GiB: set
                 {$SMART.TBW.UNIT.BYTES:"<disk name>"} = 1073741824 on the host for those.
+                No write-limit triggers: SSD wear is alerted by the wear-level items, and fixed write limits
+                do not fit large disks or HDDs. It is only used to flag a wear counter that does not move:
+                more than {$SMART.TBW.SUSPECT} written while the wear item still shows 99-100% remaining.
               preprocessing:
                 - type: JAVASCRIPT
                   parameters:
@@ -700,28 +703,6 @@ zabbix_export:
                   value: '{#NAME}'
                 - tag: disktype
                   value: '{#DISKTYPE}'
-              trigger_prototypes:
-                - uuid: 4ca83bc700d14a6fb5653072dd321c7d
-                  expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.total_lbas_written[{#NAME}])>{$SMART.TBW.CRIT:"{#NAME}"}
-                  name: 'SMART [{#NAME}]: Total bytes written is critically high'
-                  event_name: 'SMART [{#NAME}]: Total bytes written is critically high (>{$SMART.TBW.CRIT:"{#NAME}"})'
-                  opdata: 'Written: {ITEM.LASTVALUE1}'
-                  priority: HIGH
-                  tags:
-                    - tag: scope
-                      value: notice
-                - uuid: 5b2a4c07cd014cbabb58a4482825c73e
-                  expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.total_lbas_written[{#NAME}])>{$SMART.TBW.WARN:"{#NAME}"}
-                  name: 'SMART [{#NAME}]: Total bytes written is getting high'
-                  event_name: 'SMART [{#NAME}]: Total bytes written is getting high (>{$SMART.TBW.WARN:"{#NAME}"})'
-                  opdata: 'Written: {ITEM.LASTVALUE1}'
-                  priority: WARNING
-                  dependencies:
-                    - name: 'SMART [{#NAME}]: Total bytes written is critically high'
-                      expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.total_lbas_written[{#NAME}])>{$SMART.TBW.CRIT:"{#NAME}"}
-                  tags:
-                    - tag: scope
-                      value: notice
               units: B
             - uuid: 8d9e243a724a4405a71f2ccc3c082df3
               name: 'SMART [{#NAME}]: UDMA_CRC_Error_Count'
@@ -1097,24 +1078,36 @@ zabbix_export:
                 - tag: disktype
                   value: '{#DISKTYPE}'
               trigger_prototypes:
-                - uuid: 35516442003140178bf7c1a5ad7ddea9
-                  expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.CRIT}
-                  name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.CRIT} hours'
+                - uuid: 7ece7f9de4194f9f8ecdf42b95b2458c
+                  expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.CRIT:"{#DISKTYPE}"}
+                  name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.CRIT:"{#DISKTYPE}"} hours'
                   opdata: 'Power on: {ITEM.LASTVALUE1} hours'
-                  priority: AVERAGE
+                  priority: HIGH
                   manual_close: 'YES'
                   tags:
                     - tag: scope
                       value: notice
+                - uuid: 35516442003140178bf7c1a5ad7ddea9
+                  expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.AVG:"{#DISKTYPE}"}
+                  name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.AVG:"{#DISKTYPE}"} hours'
+                  opdata: 'Power on: {ITEM.LASTVALUE1} hours'
+                  priority: AVERAGE
+                  manual_close: 'YES'
+                  dependencies:
+                    - name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.CRIT:"{#DISKTYPE}"} hours'
+                      expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.CRIT:"{#DISKTYPE}"}
+                  tags:
+                    - tag: scope
+                      value: notice
                 - uuid: a61c07e606214a2fb06e0b18725444a1
-                  expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.WARN}
-                  name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.WARN} hours'
+                  expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.WARN:"{#DISKTYPE}"}
+                  name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.WARN:"{#DISKTYPE}"} hours'
                   opdata: 'Power on: {ITEM.LASTVALUE1} hours'
                   priority: WARNING
                   manual_close: 'YES'
                   dependencies:
-                    - name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.CRIT} hours'
-                      expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.CRIT}
+                    - name: 'SMART [{#NAME}]: Disk power-on time is over {$SMART.OLDAGE.AVG:"{#DISKTYPE}"} hours'
+                      expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.hours[{#NAME}])>{$SMART.OLDAGE.AVG:"{#DISKTYPE}"}
                   tags:
                     - tag: scope
                       value: notice
@@ -1348,6 +1341,50 @@ zabbix_export:
               name: 'SMART [{#NAME}]: Disk self-test is not passed'
               opdata: 'Result: {ITEM.LASTVALUE1}, test in progress: {ITEM.LASTVALUE2}'
               priority: HIGH
+              tags:
+                - tag: scope
+                  value: notice
+            - uuid: bf3c0521a6394eb4a554c71b01be2040
+              expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.total_lbas_written[{#NAME}])>{$SMART.TBW.SUSPECT:"{#NAME}"} and last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.media_wearout_indicator[{#NAME}])>=99
+              name: 'SMART [{#NAME}]: Media_Wearout_Indicator shows no wear after heavy writes'
+              event_name: 'SMART [{#NAME}]: Media_Wearout_Indicator shows no wear after heavy writes (>{$SMART.TBW.SUSPECT:"{#NAME}"} written)'
+              opdata: 'Written: {ITEM.LASTVALUE1}, remaining: {ITEM.LASTVALUE2}'
+              priority: AVERAGE
+              description: 'More than {$SMART.TBW.SUSPECT} has been written, but the wear counter still shows 99-100% life remaining. The counter is probably not tracking real wear, so judge the disk by its age and bytes written. For enterprise SSDs rated for many petabytes raise {$SMART.TBW.SUSPECT:"<disk name>"} on the host.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: notice
+            - uuid: 97ac0c65a3dd4ef7ae81b572075fb200
+              expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.total_lbas_written[{#NAME}])>{$SMART.TBW.SUSPECT:"{#NAME}"} and last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.percent_lifetime_remain[{#NAME}])>=99
+              name: 'SMART [{#NAME}]: Percent_Lifetime_Remain shows no wear after heavy writes'
+              event_name: 'SMART [{#NAME}]: Percent_Lifetime_Remain shows no wear after heavy writes (>{$SMART.TBW.SUSPECT:"{#NAME}"} written)'
+              opdata: 'Written: {ITEM.LASTVALUE1}, remaining: {ITEM.LASTVALUE2}'
+              priority: AVERAGE
+              description: 'More than {$SMART.TBW.SUSPECT} has been written, but the wear counter still shows 99-100% life remaining. The counter is probably not tracking real wear, so judge the disk by its age and bytes written. For enterprise SSDs rated for many petabytes raise {$SMART.TBW.SUSPECT:"<disk name>"} on the host.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: notice
+            - uuid: 49c5f219a7b34e7a89650dc183c908ed
+              expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.total_lbas_written[{#NAME}])>{$SMART.TBW.SUSPECT:"{#NAME}"} and last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.ssd_life_left[{#NAME}])>=99
+              name: 'SMART [{#NAME}]: SSD_Life_Left shows no wear after heavy writes'
+              event_name: 'SMART [{#NAME}]: SSD_Life_Left shows no wear after heavy writes (>{$SMART.TBW.SUSPECT:"{#NAME}"} written)'
+              opdata: 'Written: {ITEM.LASTVALUE1}, remaining: {ITEM.LASTVALUE2}'
+              priority: AVERAGE
+              description: 'More than {$SMART.TBW.SUSPECT} has been written, but the wear counter still shows 99-100% life remaining. The counter is probably not tracking real wear, so judge the disk by its age and bytes written. For enterprise SSDs rated for many petabytes raise {$SMART.TBW.SUSPECT:"<disk name>"} on the host.'
+              manual_close: 'YES'
+              tags:
+                - tag: scope
+                  value: notice
+            - uuid: 20119120c7db493db432c4750e49da78
+              expression: last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.total_lbas_written[{#NAME}])>{$SMART.TBW.SUSPECT:"{#NAME}"} and last(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.wear_leveling_count[{#NAME}])>=99
+              name: 'SMART [{#NAME}]: Wear_Leveling_Count shows no wear after heavy writes'
+              event_name: 'SMART [{#NAME}]: Wear_Leveling_Count shows no wear after heavy writes (>{$SMART.TBW.SUSPECT:"{#NAME}"} written)'
+              opdata: 'Written: {ITEM.LASTVALUE1}, remaining: {ITEM.LASTVALUE2}'
+              priority: AVERAGE
+              description: 'More than {$SMART.TBW.SUSPECT} has been written, but the wear counter still shows 99-100% life remaining. The counter is probably not tracking real wear, so judge the disk by its age and bytes written. For enterprise SSDs rated for many petabytes raise {$SMART.TBW.SUSPECT:"<disk name>"} on the host.'
+              manual_close: 'YES'
               tags:
                 - tag: scope
                   value: notice
@@ -1634,21 +1671,30 @@ zabbix_export:
         - macro: '{$SMART.DISK.NAME.NOT_MATCHES}'
           value: CHANGE_IF_NEEDED
           description: 'Excludes disks from discovery by name regex. Override per host to deduplicate RAID setups where the same physical disk appears under multiple paths. On HP Smart Array (cciss) hosts set it to " scsi$" to drop the controller logical volume, which has no SMART data.'
+        - macro: '{$SMART.OLDAGE.AVG}'
+          value: '87600'
+          description: 'Average-severity alert when an HDD''s power-on hours exceed this (87600 h ~ 10 years). The context is the disk type: override on a host with {$SMART.OLDAGE.AVG:"hdd"}.'
+        - macro: '{$SMART.OLDAGE.AVG:regex:"^(ssd|nvme)$"}'
+          value: '61320'
+          description: 'Average-severity alert when an SSD''s or NVMe''s power-on hours exceed this (61320 h ~ 7 years). Override on a host with {$SMART.OLDAGE.AVG:"ssd"} or {$SMART.OLDAGE.AVG:"nvme"}.'
         - macro: '{$SMART.OLDAGE.CRIT}'
-          value: '43800'
-          description: 'Average-severity alert when power-on hours exceed this (43800 h ~ 5 years).'
+          value: '105120'
+          description: 'High-severity alert when an HDD''s power-on hours exceed this (105120 h ~ 12 years). The context is the disk type: override on a host with {$SMART.OLDAGE.CRIT:"hdd"}.'
+        - macro: '{$SMART.OLDAGE.CRIT:regex:"^(ssd|nvme)$"}'
+          value: '70080'
+          description: 'High-severity alert when an SSD''s or NVMe''s power-on hours exceed this (70080 h ~ 8 years). Override on a host with {$SMART.OLDAGE.CRIT:"ssd"} or {$SMART.OLDAGE.CRIT:"nvme"}.'
         - macro: '{$SMART.OLDAGE.WARN}'
-          value: '39420'
-          description: 'Warning when power-on hours exceed this (39420 h ~ 4.5 years).'
-        - macro: '{$SMART.TBW.CRIT}'
-          value: '300T'
-          description: 'High-severity alert when total bytes written exceeds this. Supports K/M/G/T suffixes (1024-based). Override per disk with context, e.g. {$SMART.TBW.CRIT:"sda cciss,0"} = 600T.'
+          value: '70080'
+          description: 'Warning when an HDD''s power-on hours exceed this (70080 h ~ 8 years). The context is the disk type: override on a host with {$SMART.OLDAGE.WARN:"hdd"}.'
+        - macro: '{$SMART.OLDAGE.WARN:regex:"^(ssd|nvme)$"}'
+          value: '52560'
+          description: 'Warning when an SSD''s or NVMe''s power-on hours exceed this (52560 h ~ 6 years). Age is a secondary indicator for SSDs: it still alerts when the wear counter stays at 0% on a worn disk. Override on a host with {$SMART.OLDAGE.WARN:"ssd"} or {$SMART.OLDAGE.WARN:"nvme"}.'
+        - macro: '{$SMART.TBW.SUSPECT}'
+          value: '500T'
+          description: 'Average-severity alert when more than this has been written but the SSD''s wear counter still shows 99-100% life remaining, which means the counter is probably not tracking real wear. Supports K/M/G/T suffixes (1024-based). Raise it per disk for enterprise SSDs rated for many petabytes, e.g. {$SMART.TBW.SUSPECT:"sda cciss,0"} = 5000T.'
         - macro: '{$SMART.TBW.UNIT.BYTES}'
           value: '512'
           description: Bytes per Total_LBAs_Written unit. Override per disk with context for disks that report it in GiB, e.g. {$SMART.TBW.UNIT.BYTES:"sde cciss,3"} = 1073741824.
-        - macro: '{$SMART.TBW.WARN}'
-          value: '150T'
-          description: 'Warning when total bytes written exceeds this. Supports K/M/G/T suffixes (1024-based). Override per disk with context, e.g. {$SMART.TBW.WARN:"sda cciss,0"} = 500T.'
         - macro: '{$SMART.TEMPERATURE.MAX.CRIT}'
           value: '65'
           description: 'This macro is used for trigger expression. It can be overridden on the host or linked on the template level.'
