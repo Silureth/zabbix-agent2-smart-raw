@@ -34,7 +34,7 @@ zabbix_export:
         Changes compared to the official template:
         - SSD endurance items: Wear_Leveling_Count (Samsung), SSD_Life_Left (Kingston), Media_Wearout_Indicator (WD), Percent_Lifetime_Remain (Micron/Crucial). All are stored as "% life remaining" (100 = new) and alert below {$SMART.WEAR_LEVEL.WARN}, {$SMART.WEAR_LEVEL.AVG} and {$SMART.WEAR_LEVEL.CRIT} (default 30/20/10%).
         - Total bytes written per disk (from Total_LBAs_Written or Host_Writes_GiB). No write-limit triggers, since SSD wear is alerted by the wear-level items; instead it flags a wear counter that does not move: more than {$SMART.TBW.SUSPECT} (default 500T) written while the wear item still shows 99-100% remaining.
-        - Failure attribute items and triggers: Current_Pending_Sector, Offline_Uncorrectable, Uncorrectable_Error_Cnt, Runtime_Bad_Block, UDMA_CRC_Error_Count / CRC_Error_Count (interface errors, usually cable or backplane), plus alerts when Reallocated_Sector_Ct or Reported_Uncorrect increase. "Increased" alerts stay open until closed manually.
+        - Failure attribute items and triggers: Current_Pending_Sector, Offline_Uncorrectable, Uncorrectable_Error_Cnt, Runtime_Bad_Block, UDMA_CRC_Error_Count / CRC_Error_Count (interface errors, usually cable or backplane), plus alerts when Reallocated_Sector_Ct or Reported_Uncorrect increase. "Increased" alerts stay open until closed manually or until the disk is replaced (new serial number).
         - Disk age triggers on power-on hours ({$SMART.OLDAGE.WARN} / {$SMART.OLDAGE.AVG} / {$SMART.OLDAGE.CRIT}), with the disk type as macro context: 8 / 10 / 12 years for HDDs, 6 / 7 / 8 years for SSD and NVMe. Age is a secondary indicator that still alerts when a disk's wear counter is wrong. Override on a host per type, e.g. {$SMART.OLDAGE.WARN:"ssd"}.
         - Configurable polling interval ({$SMART.DISK.GET.INTERVAL}) and triggers that use the latest value, suited to hourly polling.
         - Vendor attribute items are created only when the disk reports that attribute.
@@ -116,11 +116,12 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 2d876f03fef04ec2a3975da26b4f24fc
                   expression: change(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.crc_error_count[{#NAME}])>0
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Interface CRC errors increased (check cable/backplane)'
                   opdata: 'Current: {ITEM.LASTVALUE1}'
                   priority: WARNING
-                  description: Interface CRC errors (Samsung). Usually caused by a cable, backplane or controller problem, not the disk itself. Close manually after review.
+                  description: Interface CRC errors (Samsung). Usually caused by a cable, backplane or controller problem, not the disk itself. Close manually after review; closes automatically when the disk is replaced (new serial number).
                   manual_close: 'YES'
                   tags:
                     - tag: scope
@@ -436,11 +437,12 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 1ce55c53e759440eb7ea43b2f2730be1
                   expression: change(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.reallocated_sector_ct[{#NAME}])>0
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Reallocated sector count increased'
                   opdata: 'Current: {ITEM.LASTVALUE1}'
                   priority: WARNING
-                  description: The disk remapped more bad sectors to spare area. A steadily growing count means the disk is failing. Close manually after review.
+                  description: The disk remapped more bad sectors to spare area. A steadily growing count means the disk is failing. Close manually after review; closes automatically when the disk is replaced (new serial number).
                   manual_close: 'YES'
                   tags:
                     - tag: scope
@@ -474,11 +476,12 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 340d3182326d41f398665eff36c8ae2a
                   expression: change(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.reported_uncorrect[{#NAME}])>0
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Reported uncorrectable errors increased'
                   opdata: 'Current: {ITEM.LASTVALUE1}'
                   priority: AVERAGE
-                  description: The disk reported errors that could not be recovered with ECC. Close manually after review.
+                  description: The disk reported errors that could not be recovered with ECC. Close manually after review; closes automatically when the disk is replaced (new serial number).
                   manual_close: 'YES'
                   tags:
                     - tag: scope
@@ -512,11 +515,12 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 013499c1a871467884863a9b9a92b5d2
                   expression: change(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.runtime_bad_block[{#NAME}])>0
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Runtime bad block count increased'
                   opdata: 'Current: {ITEM.LASTVALUE1}'
                   priority: WARNING
-                  description: Number of blocks that went bad during operation (Samsung). Close manually after review.
+                  description: Number of blocks that went bad during operation (Samsung). Close manually after review; closes automatically when the disk is replaced (new serial number).
                   manual_close: 'YES'
                   tags:
                     - tag: scope
@@ -733,11 +737,12 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 06226c6255c24ea58f8d470229b726ec
                   expression: change(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.udma_crc_error_count[{#NAME}])>0
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Interface CRC errors increased (check cable/backplane)'
                   opdata: 'Current: {ITEM.LASTVALUE1}'
                   priority: WARNING
-                  description: Interface CRC errors. Usually caused by a cable, backplane or controller problem, not the disk itself. Close manually after review.
+                  description: Interface CRC errors. Usually caused by a cable, backplane or controller problem, not the disk itself. Close manually after review; closes automatically when the disk is replaced (new serial number).
                   manual_close: 'YES'
                   tags:
                     - tag: scope
@@ -771,11 +776,12 @@ zabbix_export:
               trigger_prototypes:
                 - uuid: 4e5ab87e7a404a44be5a02328a41cdf0
                   expression: change(/SMART by Zabbix agent 2 by Silureth/smart.disk.attribute.uncorrectable_error_cnt[{#NAME}])>0
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Uncorrectable error count increased'
                   opdata: 'Current: {ITEM.LASTVALUE1}'
                   priority: AVERAGE
-                  description: Number of uncorrectable errors (Samsung). Close manually after review.
+                  description: Number of uncorrectable errors (Samsung). Close manually after review; closes automatically when the disk is replaced (new serial number).
                   manual_close: 'YES'
                   tags:
                     - tag: scope
@@ -928,7 +934,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),8) = 8 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),8) = 8
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),8) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),8) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Check returned "DISK FAILING"'
                   priority: HIGH
                   description: 'SMART status check returned "DISK FAILING".'
@@ -941,7 +948,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),1) = 1 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),1) = 1
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),1) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),1) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Command line did not parse'
                   priority: HIGH
                   description: 'Command line did not parse.'
@@ -954,7 +962,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),2) = 2 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),2) = 2
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),2) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),2) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Device open failed'
                   priority: HIGH
                   description: 'Device open failed, device did not return an IDENTIFY DEVICE structure, or device is in a low-power mode.'
@@ -967,7 +976,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),64) = 64 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),64) = 64
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),64) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),64) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Error log contains records'
                   priority: HIGH
                   description: 'The device error log contains records of errors.'
@@ -980,7 +990,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),128) = 128 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),128) = 128
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),128) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),128) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Self-test log contains records'
                   priority: HIGH
                   description: |
@@ -995,7 +1006,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),32) = 32 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),32) = 32
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),32) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),32) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Some Attributes have been <= threshold'
                   priority: HIGH
                   description: |
@@ -1010,7 +1022,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),4) = 4 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),4) = 4
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),4) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),4) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Some command to the disk failed'
                   status: DISABLED
                   discover: NO_DISCOVER
@@ -1027,7 +1040,8 @@ zabbix_export:
                     ( count(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2) = 1 and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),16) = 16 )
                     or ( bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),16) = 16
                     and bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}]),16) > bitand(last(/SMART by Zabbix agent 2 by Silureth/smart.disk.es[{#NAME}],#2),16) )
-                  recovery_mode: NONE
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#1)<>last(/SMART by Zabbix agent 2 by Silureth/smart.disk.sn[{#NAME}],#2)'
                   name: 'SMART [{#NAME}]: Some prefail Attributes <= threshold'
                   priority: HIGH
                   description: 'We found prefail Attributes <= threshold.'

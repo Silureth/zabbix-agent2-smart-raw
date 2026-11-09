@@ -64,7 +64,7 @@ On HP Smart Array (cciss) hosts set `{$SMART.DISK.NAME.NOT_MATCHES}` to ` scsi$`
   endurance item still shows 99-100 % remaining (Average, can be closed manually).
 - Failure attribute items and triggers: Current_Pending_Sector, Offline_Uncorrectable, Uncorrectable_Error_Cnt, Runtime_Bad_Block,
   UDMA_CRC_Error_Count / CRC_Error_Count (interface errors, usually cable or backplane), plus alerts when Reallocated_Sector_Ct
-  or Reported_Uncorrect increase. "Increased" alerts stay open until closed manually.
+  or Reported_Uncorrect increase. "Increased" alerts stay open until closed manually or until the disk is replaced (new serial number).
 - Disk age triggers on power-on hours (`{$SMART.OLDAGE.WARN}` / `AVG` / `CRIT` = Warning / Average / High), with the disk type as macro context:
   8 / 10 / 12 years for HDDs, 6 / 7 / 8 years for SSD and NVMe. Age is a secondary indicator: it still alerts when a disk's
   wear counter is wrong (e.g. an old SSD that reports 0 % wear after a petabyte of writes).
