@@ -40,6 +40,8 @@ zabbix_export:
         - Vendor attribute items are created only when the disk reports that attribute.
 
         Source and notes: https://github.com/Silureth/zabbix-agent2-smart-raw
+
+        License: AGPL-3.0, like the Zabbix 7.0 template it is based on. Copyright (C) 2001-2026 Zabbix SIA; modifications Copyright (C) 2024-2026 Herczeg Szilard.
       groups:
         - name: Templates/Modules
       discovery_rules:

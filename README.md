@@ -106,3 +106,20 @@ changes made by this pull:
 https://github.com/zabbix/zabbix/pull/95
 # BUILD INSTRUCTIONS
 https://medium.com/@zhuravlev.vitaly/writing-watcher-zabbix-agent2-mqtt-plugin-in-go-e00067ea1990
+
+# License
+Everything here is derived from Zabbix and keeps the license of the Zabbix version it is based on.
+Copyright (C) 2001-2026 Zabbix SIA; modifications Copyright (C) 2024-2026 Herczeg Szilard.
+
+| Files | Based on | License |
+|---|---|---|
+| `zbx_export_templates7_0.yaml` | official "SMART by Zabbix agent 2" template, Zabbix 7.0 | [AGPL-3.0](LICENSE) (version 3 only) |
+| `zabbix_agent2_7_0_8`, `zabbix_agent2_7_2_2` | Zabbix agent 2 7.0 / 7.2 | [AGPL-3.0](LICENSE) (version 3 only) |
+| `zbx_export_templates6_0.yaml` | official "SMART by Zabbix agent 2" template, Zabbix 6.0 | [GPL-2.0-or-later](LICENSE.GPL-2.0) |
+| `smart.zip`, `zabbix_agent2_6_0_31`, `zabbix_agent2_6_0_37` | Zabbix agent 2 6.0 smart plugin | [GPL-2.0-or-later](LICENSE.GPL-2.0) |
+
+Source of the precompiled agents: the upstream Zabbix source of the matching version
+(https://github.com/zabbix/zabbix, tags `6.0.31rc1`, `6.0.37`, `7.0.8`, `7.2.2`) with the changes in `smart.zip`
+applied to `src/go/plugins/smart` (each attribute also returns its normalized value and ID).
+The modified files in `smart.zip` (`smart.go`, `smartfs.go`, `smart_test.go`) carry a modification notice.
+Everything is provided as-is, WITHOUT ANY WARRANTY; see the license texts for details.
